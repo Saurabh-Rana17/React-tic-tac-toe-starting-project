@@ -5,11 +5,15 @@ import Log from "./components/Log";
 import { WINNING_COMBINATIONS } from "./winning-combinations";
 import GameOver from "./components/GameOver";
 
-const initialGameBoard = [
+const INITIAL_GAME_BOARD = [
   [null, null, null],
   [null, null, null],
   [null, null, null],
 ];
+const PLAYER = {
+  X: "Player 1",
+  O: "Player 2",
+};
 
 function deriveActivePlayer(gameTurns) {
   let currentActivePlayer = "X";
@@ -20,22 +24,8 @@ function deriveActivePlayer(gameTurns) {
   return currentActivePlayer;
 }
 
-function App() {
-  const [players, setPlayers] = useState({
-    X: "Player 1",
-    O: "Player 2",
-  });
-  const [gameTurns, setGameTurns] = useState([]);
-  const activePlayer = deriveActivePlayer(gameTurns);
-
-  let gameBoard = [...initialGameBoard.map((item) => [...item])];
+function deriveWinner(gameBoard, players) {
   let winner;
-
-  for (const turn of gameTurns) {
-    const { square, player } = turn;
-    const { row, col } = square;
-    gameBoard[row][col] = player;
-  }
 
   for (const combination of WINNING_COMBINATIONS) {
     const firstSquareSymbol =
@@ -52,14 +42,32 @@ function App() {
       winner = players[firstSquareSymbol];
     }
   }
+  return winner;
+}
+
+function deriveGameBoard(gameTurns) {
+  let gameBoard = [...INITIAL_GAME_BOARD.map((item) => [...item])];
+
+  for (const turn of gameTurns) {
+    const { square, player } = turn;
+    const { row, col } = square;
+    gameBoard[row][col] = player;
+  }
+  return gameBoard;
+}
+
+function App() {
+  const [players, setPlayers] = useState(PLAYER);
+  const [gameTurns, setGameTurns] = useState([]);
+  const activePlayer = deriveActivePlayer(gameTurns);
+  const gameBoard = deriveGameBoard(gameTurns);
+
+  const winner = deriveWinner(gameBoard, players);
   let hasDraw;
   if (gameTurns.length === 9 && !winner) {
     hasDraw = true;
   }
-
   function handleSelectSquare(rowIndex, colIndex) {
-    // setActivePlayer((prev) => (prev === "X" ? "O" : "X"));
-
     setGameTurns((prevTurns) => {
       const currentActivePlayer = deriveActivePlayer(prevTurns);
       const updatedTurns = [
@@ -93,13 +101,13 @@ function App() {
           <ol id="players" className="highlight-player">
             <Player
               onChangeName={handlePlayerChange}
-              initialName="Player 1"
+              initialName={PLAYER.X}
               isActive={activePlayer === "X" ? true : false}
               symbol="X"
             />
             <Player
               onChangeName={handlePlayerChange}
-              initialName="Player 2 "
+              initialName={PLAYER.O}
               isActive={activePlayer === "O" ? true : false}
               symbol="O"
             />
